@@ -5,6 +5,7 @@ import xml.etree.ElementTree as ET
 import gzip
 import zipfile as zf
 import os
+import re
 from operator import itemgetter
 
 
@@ -82,7 +83,7 @@ class LogReader(object):
         i = 0
         sup.print_performed_task('Reading log traces ')
         for trace in traces:
-#            sup.print_progress(((i / (len(traces) - 1)) * 100), 'Reading log traces ')
+            sup.print_progress(((i / (len(traces) - 1)) * 100), 'Reading log traces ')
             caseid = ''
             for string in trace.findall(tags['string'], ns):
                 if string.attrib['key'] == 'concept:name':
@@ -110,7 +111,11 @@ class LogReader(object):
                         try:
                             timestamp = datetime.datetime.strptime(timestamp[:-6], timeformat)
                         except ValueError:
-                            timestamp = datetime.datetime.strptime(timestamp, timeformat)
+                            if re.search(".*\.\d{3}$", timestamp):
+                                timestamp = datetime.datetime.strptime(timestamp, timeformat)
+                            else:
+                                timestamp = datetime.datetime.strptime(timestamp, timeformat[:-3])
+
                 if not (task == '0' or task == '-1'):
                     temp_data.append(
                         dict(caseid=caseid, task=task, event_type=event_type, user=user, start_timestamp=timestamp,
