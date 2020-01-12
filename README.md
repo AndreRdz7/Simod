@@ -6,6 +6,26 @@ Simod combines several process mining techniques to fully automate the generatio
 
 To execute this code you just need to install Anaconda in your system, and create an environment using the *simo.yml* specification provided in the repository.
 
+Link to Anaconda: []()  
+
+Once downloaded, lauch the Anaconda prompt and type:
+```bash
+conda env create -f simo.yml
+```  
+To verify environment creation:  
+```bash
+conda env list
+```
+And should display: 'simo_jupyter' in the list.  
+To activate the environment:
+```bash
+conda activate simo_jupyter
+```  
+Navigate to folder structure inside this repository and to run the notebook:  
+```bash
+jupyter notebook Simod.ipynb
+```
+
 ### Data format
  
 The tool assumes the input is composed by a case identifier, an activity label, a resource attribute (indicating which resource performed the activity), 
@@ -39,8 +59,13 @@ Once created the environment you can open the file Simod.ipynb using Jupyter, an
 
 Once all the parameters are settled It is time to start the execution and wait for the results.
 
-## Authors
+## Original Authors
 
 * **Manuel Camargo**
 * **Marlon Dumas**
-* **Oscar Gonzalez-Rojas**
+* **Oscar Gonzalez-Rojas**  
+
+## Complementary Authors  
+
+* **Luciano García**
+* **André Rodríguez**
