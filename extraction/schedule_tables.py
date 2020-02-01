@@ -28,6 +28,19 @@ from datetime import datetime
 #         # print(np.mean([x['dur'] for x in resource_schedule])/3600)
 #         sup.create_csv_file_header(resource_schedule, 'schedule.csv')
 
+def letter_to_months(argument):
+    switcher = {
+        'M': "Monday",
+        'T': "Tuesday",
+        'W': "Wednesday",
+        't': "Thursday",
+        'F': "Friday",
+        'S': "Saturday",
+        's': "Sunday"
+    }
+    return switcher.get(argument, lambda: "Invalid month")
+
+    
 def analize_schedules(resource_table, log, default=False, dtype=None):
     resource_pool = list()
     if default:
@@ -75,10 +88,21 @@ def create_timetables(resource_table,default=True, dtype='LV917'):
             from_t = "00:00:00.000+00:00",to_t="23:59:59.999+00:00",from_w="MONDAY",to_w="SUNDAY"))
             schedule = dict(work_days = [1,1,1,1,1,1,1], start_hour = datetime(1900,1,1,0, 0, 0), end_hour = datetime(1900,1,1,23, 59, 59))
         else:
+            # Todo: delete this exception once scheduler is completed
             raise Exception('Default schedule not existent')
         # Add default schedule to resources
         for x in resource_table:
             x['schedule'] = schedule
+    else:
+        # Tuesday: T, Thursday: t, Saturday: S, Sunday: s
+        # example WF0813
+        starting_day = dtype[0] # in example: W -> Wednesday
+        finishing_day = dtype[1] # in example: F -> Friday
+        starting_hour = dtype[2:4] # in example: 08 -> 8 am
+        finishing_hour = dtype[4:] # in example: 13 -> 1 pm
+        time_table.append(dict(id_t="QBP_CUSTOM_TIMETABLE", default="false", name=dtype, from_t = starting_hour + ":00:00.000+00:00", to_t= finishing_hour + ":00:00.000+00:00", from_w=letter_to_months(starting_day), to_w=letter_to_months(finishing_day))              
+        schedule = dict(work_days = [1,1,1,1,1,1,1], start_hour = datetime(1900,1,1,0, 0, 0), end_hour = datetime(1900,1,1,23, 59, 59))
+        
     return time_table, resource_table
 
 def worked_days(resource_data, log_data):
