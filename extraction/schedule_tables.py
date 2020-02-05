@@ -28,7 +28,7 @@ from datetime import datetime
 #         # print(np.mean([x['dur'] for x in resource_schedule])/3600)
 #         sup.create_csv_file_header(resource_schedule, 'schedule.csv')
 
-def letter_to_months(argument):
+def letter_to_day(argument):
     switcher = {
         'M': "Monday",
         'T': "Tuesday",
@@ -39,6 +39,24 @@ def letter_to_months(argument):
         's': "Sunday"
     }
     return switcher.get(argument, lambda: "Invalid month")
+
+def determine_work_days(start, end):
+    work_days = [0,0,0,0,0,0,0]
+    switcher = {
+        'M': 0,
+        'T': 1,
+        'W': 2,
+        't': 3,
+        'G': 4,
+        'S': 5,
+        's': 6,
+    }
+    start_num = switcher.get(start)
+    end_num = switcher.get(end)
+    for i in range(7):
+        if i >= start_num and i <= end_num:
+            work_days[i] = 1
+    return work_days
 
     
 def analize_schedules(resource_table, log, default=False, dtype=None):
@@ -76,17 +94,17 @@ def analize_log_schedule(resource_table, log):
     [print(x) for x in roles_availability(resource_table)]
 
 
-def create_timetables(resource_table,default=True, dtype='LV917'):
+def create_timetables(resource_table, default=True, dtype='LV917', set_start_hour=datetime(1900,1,1,9, 0, 0)):
     time_table = list()
     if default:
         if dtype=='LV917':
             time_table.append(dict(id_t="QBP_DEFAULT_TIMETABLE",default="true",name="Default",
             from_t = "09:00:00.000+00:00",to_t="17:00:00.000+00:00",from_w="MONDAY",to_w="FRIDAY"))
-            schedule = dict(work_days = [1,1,1,1,1,0,0], start_hour = datetime(1900,1,1,9, 0, 0), end_hour = datetime(1900,1,1,17, 0, 0))
+            schedule = dict(work_days = [1,1,1,1,1,0,0], start_hour = set_start_hour, end_hour = datetime(1900,1,1,17, 0, 0))
         elif dtype=='247':
             time_table.append(dict(id_t="QBP_DEFAULT_TIMETABLE",default="false",name="24/7",
             from_t = "00:00:00.000+00:00",to_t="23:59:59.999+00:00",from_w="MONDAY",to_w="SUNDAY"))
-            schedule = dict(work_days = [1,1,1,1,1,1,1], start_hour = datetime(1900,1,1,0, 0, 0), end_hour = datetime(1900,1,1,23, 59, 59))
+            schedule = dict(work_days = [1,1,1,1,1,1,1], start_hour = set_start_hour, end_hour = datetime(1900,1,1,23, 59, 59))
         else:
             # Todo: delete this exception once scheduler is completed
             raise Exception('Default schedule not existent')
@@ -96,14 +114,17 @@ def create_timetables(resource_table,default=True, dtype='LV917'):
     else:
         # Tuesday: T, Thursday: t, Saturday: S, Sunday: s
         # example WF0813
-        starting_day = dtype[0] # in example: W -> Wednesday
-        finishing_day = dtype[1] # in example: F -> Friday
-        starting_hour = dtype[2:4] # in example: 08 -> 8 am
-        finishing_hour = dtype[4:] # in example: 13 -> 1 pm
-        time_table.append(dict(id_t="QBP_CUSTOM_TIMETABLE", default="false", name=dtype, from_t = starting_hour + ":00:00.000+00:00", to_t= finishing_hour + ":00:00.000+00:00", from_w=letter_to_months(starting_day), to_w=letter_to_months(finishing_day))              
-        schedule = dict(work_days = [1,1,1,1,1,1,1], start_hour = datetime(1900,1,1,0, 0, 0), end_hour = datetime(1900,1,1,23, 59, 59))
-        
+        starting_day = letter_to_day(dtype[0]) # in example: W -> Wednesday
+        finishing_day = letter_to_day(dtype[1]) # in example: F -> Friday
+        starting_hour = dtype[2:4] + ":00:00.000+00:00" # in example: 08 -> 8 am
+        finishing_hour = dtype[4:] + ":00:00.000+00:00" # in example: 13 -> 1 pm
+        work_days = determine_work_days(dtype[0],dtype[1])
+        time_table.append(dict(id_t="QBP_CUSTOM_SCHEDULE", default="false", name=dtype, from_t=starting_hour, to_t=finishing_hour, from_w=starting_day, to_w=finishing_day))
+        schedule = dict(work_days = work_days, start_hour = set_start_hour, end_hour = datetime(1900,1,1,17, 0, 0))
+        for x in resource_table:
+            x['schedule'] = schedule
     return time_table, resource_table
+
 
 def worked_days(resource_data, log_data):
     resource = resource_data['resource']

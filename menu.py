@@ -38,6 +38,27 @@ dr_exec_mode = widgets.Dropdown(
 exec_mode = widgets.VBox([widgets.Label('Execution mode:', layout={'width':'95%'}),
                          dr_exec_mode], layout={'align_items':'stretch'})
 
+file_display = widgets.VBox([widgets.Label(f'Current File Selected: {txt_eventlog.value}')])
+
+dr_day_display = widgets.Dropdown(
+    options=['Monday','Tuesday','Wednesday','Thursday','Friday', 'Saturday','Sunday'],
+    value='Monday',
+    layout={'width': "40%"}
+)
+
+day_display_start = widgets.VBox([widgets.Label('Starting Day:', layout={"width": "40%"}), dr_day_display], layout={'align_items':'stretch'})
+day_display_end = widgets.VBox([widgets.Label('Ending Day:', layout={"width": "40%"}), dr_day_display], layout={'align_items':'stretch'})
+
+dr_hour_display = widgets.Dropdown(
+    options=['00','01','02','03','04', '05','06','07','08','09','10', '11','12', '13','14','15','16','17', '18','19','20','21','22','23'],
+    value='09',
+    layout={'width': "40%"}
+)
+
+hour_display_start = widgets.VBox([widgets.Label('Starting Hour:', layout={"width": "40%"}), dr_hour_display], layout={'align_items':'stretch'})
+hour_display_end = widgets.VBox([widgets.Label('Ending Hour:', layout={"width": "40%"}), dr_hour_display], layout={'align_items':'stretch'})
+
+
 bt_next = widgets.Button(description='Next')
 
 # Simple components
@@ -69,6 +90,7 @@ sl_alg_manag = widgets.Dropdown(
 
 alg_manag = widgets.VBox([widgets.Label('Non-conformance management:', layout={'width':'95%'}),
                           sl_alg_manag], layout={'align_items':'stretch'})
+
 
 sl_rep = widgets.IntSlider(
          value=1,
@@ -266,12 +288,14 @@ def update_graph(df):
 box_general = widgets.VBox([eventlog, exec_mode, bt_next])
 box_simple = widgets.VBox([eta, epsilon, alg_manag, rep, bt_start_simple])
 box_opt = widgets.VBox([eta_range, epsilon_range, max_evals, rep_opt, bt_start_opt])
+box_write = widgets.VBox([file_display,day_display_start, day_display_end, hour_display_start, hour_display_end])
 
-tab = widgets.Tab([box_general, box_simple, box_opt],
-                  layout={'width':'35%', 'height':'350px'})
+tab = widgets.Tab([box_general, box_simple, box_opt, box_write],
+                  layout={'width':'45%', 'height':'350px'})
 tab.set_title(0, 'General')
 tab.set_title(1, 'Simple')
 tab.set_title(2, 'Optimizer')
+tab.set_title(3, 'Write On Log')
 
 box = widgets.HBox([tab, out])
 down_box = widgets.HBox([graph_out, res_out])
